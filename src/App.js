@@ -1,16 +1,67 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Wheel } from "react-custom-roulette";
+import mondaySdk from "monday-sdk-js";
 
 const data = [
-  { id: 1, option: "Avi" },
-  { id: 2, option: "david" },
-  { id: 3, option: "Eden" },
-  { id: 4, option: "George" },
-  { id: 5, option: "John" },
-  { id: 6, option: "Bruce" },
+  { id: 1, option: "item1" },
+  { id: 2, option: "item2" },
+  { id: 3, option: "item3" },
+  { id: 4, option: "item4" },
+  { id: 5, option: "item5" },
 ];
 
 function App() {
+  const [info, setInfo] = useState([]);
+  const tempList = [];
+  const tempItems = [{ id: "", option: "" }];
+  const [itemsList, setItemsList] = useState(tempList);
+
+  useEffect(() => {
+    const monday = mondaySdk();
+    monday.listen("context", (res) => {
+      console.log(res);
+    });
+    monday
+      .api(
+        `query {
+      boards (ids:[1512802386]) {
+      name
+  	    id
+  	    description
+  	    items {
+    	    name
+    	    column_values {
+      	    title
+      	    id
+      	    type
+      	    text
+  		    }
+        }
+      }
+    }`
+      )
+      .then((res) => {
+        console.log(res);
+        setInfo(res);
+        console.log(res.data.boards[0].items);
+        res.data.boards[0].items.map((item, index) => {
+          console.log(item);
+          tempList.push(item);
+          tempItems.push(index, item.name);
+          setItemsList(tempList);
+        });
+        console.log(itemsList);
+        console.log(tempItems);
+      });
+  }, []);
+
+  useEffect(() => {
+    // console.log(info);
+    // info.map((item, index) => {
+    //   console.log(item);
+    // });
+  }, []);
+
   const [mustSpin, setMustSpin] = useState(false);
   const [prizeNumber, setPrizeNumber] = useState(0);
 
